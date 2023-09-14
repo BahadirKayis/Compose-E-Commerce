@@ -113,4 +113,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager-indicators:0.27.0")
     implementation("com.google.accompanist:accompanist-placeholder:0.27.0")
 //    implementation("com.google.accompanist:accompanist-swipe refresh:0.27.0")
+
+    implementation("com.airbnb.android:lottie-compose:4.2.0")
+
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
 }

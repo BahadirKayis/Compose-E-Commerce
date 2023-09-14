@@ -1,7 +1,7 @@
 package com.bahadir.tostbangcase.di
 
 import com.bahadir.tostbangcase.core.Constants.BASE_URL
-import com.bahadir.tostbangcase.data.source.remote.FiriyaService
+import com.bahadir.tostbangcase.data.api.FiriyaApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,12 +19,12 @@ import javax.inject.Singleton
 object RetrofitModule {
     @Provides
     @Singleton
-    fun provideFoodService(): FiriyaService = Retrofit.Builder()
+    fun provideFoodService(): FiriyaApi = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .client(getOkHttpClient(getInterceptor()))
         .build()
-        .create(FiriyaService::class.java)
+        .create(FiriyaApi::class.java)
 
     @Provides
     @Singleton

@@ -1,7 +1,5 @@
 package com.bahadir.tostbangcase.presentation.navigation
 
-import android.os.Build.PRODUCT
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -9,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.bahadir.tostbangcase.core.Constants.PRODUCT
 import com.bahadir.tostbangcase.presentation.screens.basket.BasketRoute
 import com.bahadir.tostbangcase.presentation.screens.detail.DetailRoute
 import com.bahadir.tostbangcase.presentation.screens.home.HomeRoute
@@ -17,7 +16,7 @@ import com.bahadir.tostbangcase.presentation.screens.shoppinghistory.ShoppingHis
 
 @Composable
 fun SetUpNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = ScreenNav.Home.route) {
+    NavHost(navController = navController, startDestination = ScreenRoute.Home.route) {
         addLogin(navController = navController)
         addHome(navController = navController)
         addBasket(navController = navController)
@@ -27,48 +26,46 @@ fun SetUpNavGraph(navController: NavHostController) {
 }
 
 fun NavGraphBuilder.addLogin(navController: NavHostController) {
-    composable(route = ScreenNav.Login.route) {
-        Log.e("TAG", "addLogin: ")
+    composable(route = ScreenRoute.Login.route) {
         LoginScreen(navigeteToHome = {
-            navController.navigate(route = ScreenNav.Home.route)
+            navController.navigate(route = ScreenRoute.Home.route)
         })
     }
 }
 
 fun NavGraphBuilder.addDetail(navController: NavHostController) {
     composable(
-        route = ScreenNav.Detail.route,
+        route = "${ScreenRoute.Detail.route}/{$PRODUCT}",
         arguments = listOf(
             navArgument(PRODUCT) {
                 type = NavType.StringType
             },
         ),
     ) {
-        Log.e("TAG", "addDetail: ")
         DetailRoute()
     }
 }
 
 fun NavGraphBuilder.addHome(navController: NavHostController) {
-    composable(route = ScreenNav.Home.route) {
-        Log.e("TAG", "addHome: ")
-        HomeRoute()
+    composable(route = ScreenRoute.Home.route) {
+        HomeRoute(navController, onProductClicked = { firiyaItem ->
+            val route = "${ScreenRoute.Detail.route}/{${firiyaItem.id}}"
+            navController.navigate(route = route)
+        })
     }
 }
 
 fun NavGraphBuilder.addBasket(navController: NavHostController) {
-    composable(route = ScreenNav.Basket.route) {
+    composable(route = ScreenRoute.Basket.route) {
         BasketRoute {
-            Log.e("TAG", "addBasket: ")
-            val route = "${ScreenNav.Detail.route}/$it"
+            val route = "${ScreenRoute.Detail.route}/$it"
             navController.navigate(route = route)
         }
     }
 }
 
 fun NavGraphBuilder.addShoppingHistory(navController: NavHostController) {
-    composable(route = ScreenNav.ShoppingHistory.route) {
-        Log.e("TAG", "addShoppingHistory: ")
+    composable(route = ScreenRoute.ShoppingHistory.route) {
         ShoppingHistoryRoute()
     }
 }

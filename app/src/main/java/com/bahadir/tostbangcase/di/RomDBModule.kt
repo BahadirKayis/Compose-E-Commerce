@@ -2,8 +2,8 @@ package com.bahadir.tostbangcase.di
 
 import android.content.Context
 import androidx.room.Room
-import com.bahadir.tostbangcase.data.source.local.FiriyaDao
-import com.bahadir.tostbangcase.data.source.local.FiriyaDatabase
+import com.bahadir.tostbangcase.data.room.FiriyaDao
+import com.bahadir.tostbangcase.data.room.FiriyaDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

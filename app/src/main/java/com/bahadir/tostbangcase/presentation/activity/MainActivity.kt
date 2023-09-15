@@ -3,7 +3,6 @@ package com.bahadir.tostbangcase.presentation.activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.VectorConverter
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -45,11 +44,11 @@ fun FiriyaApp(name: String, modifier: Modifier = Modifier) {
     SetUpNavGraph(navController = navController)
     SideEffect {
         systemUiController.setStatusBarColor(
-            color = Color.Blue,
-            darkIcons = isLight,
+            color = Color(0xFF576CBC),
+            darkIcons = !isLight,
 
         )
-        systemUiController.isNavigationBarVisible = false
+        systemUiController.isNavigationBarVisible = true
     }
 }
 

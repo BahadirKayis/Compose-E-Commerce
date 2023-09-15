@@ -1,5 +1,6 @@
 package com.bahadir.tostbangcase.domain.mapper
 
+import com.bahadir.tostbangcase.core.extensions.formatPrice
 import com.bahadir.tostbangcase.data.model.FiriyaItem
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
 import javax.inject.Inject
@@ -10,7 +11,7 @@ class FiriyaProductEntityMapper @Inject constructor() : FiriyaListMapper<FiriyaI
         return input.map {
             FiriyaUI(
                 id = it.id,
-                price = formatPrice(it.price),
+                price = it.price.formatPrice(),
                 image = it.image,
                 description = it.description,
                 category = it.category,
@@ -19,14 +20,5 @@ class FiriyaProductEntityMapper @Inject constructor() : FiriyaListMapper<FiriyaI
         }
     }
 
-    private fun formatPrice(doubleValue: Double): String {
-        val formattedValue = if (doubleValue == doubleValue.toInt().toDouble()) {
-            // Noktadan sonraki kısmı 0 ise tam sayı olarak kabul edin.
-            String.format("%.0f", doubleValue)
-        } else {
-            // Noktadan sonraki kısmı 0'dan farklı ise normal olarak formatlayın.
-            String.format("%.2f", doubleValue)
-        }
-        return formattedValue
-    }
+
 }

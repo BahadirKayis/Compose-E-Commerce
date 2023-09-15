@@ -4,7 +4,12 @@ import com.bahadir.tostbangcase.core.Resource
 import com.bahadir.tostbangcase.data.model.FiriyaItem
 import com.bahadir.tostbangcase.data.source.local.LocalDataSource
 import com.bahadir.tostbangcase.data.source.remote.RemoteDataSource
+import com.bahadir.tostbangcase.domain.entitiy.FiriyaSoldBasket
+import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -22,19 +27,39 @@ class FiriyaRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun insertProduct(product: List<FiriyaItem>) {
-        TODO("Not yet implemented")
+    override suspend fun addProduct(firiya: FiriyaUI) {
+        withContext(ioDispatcher) {
+            localDataSource.addProduct(firiya)
+        }
     }
 
-    override suspend fun deleteProduct() {
-        TODO("Not yet implemented")
+    override suspend fun deleteProduct(firiya: FiriyaUI) {
+        withContext(ioDispatcher) {
+            localDataSource.deleteProduct(firiya)
+        }
     }
 
-    override suspend fun getBasket(): Resource<List<FiriyaItem>> {
-        TODO("Not yet implemented")
+    override suspend fun deleteAllProduct(firiya: List<FiriyaUI>) {
+        withContext(ioDispatcher) {
+            localDataSource.deleteAllProduct(firiya)
+        }
     }
 
-    override suspend fun getShoppingHistory(): Resource<List<FiriyaItem>> {
-        TODO("Not yet implemented")
+    override suspend fun soldBasket(basket: FiriyaSoldBasket) {
+        withContext(ioDispatcher) {
+            localDataSource.addSoldHistory(basket)
+        }
+    }
+
+    override suspend fun getSoldHistory(): List<FiriyaSoldBasket> =
+        withContext(ioDispatcher) {
+            localDataSource.getSoldHistory()
+        }
+
+    override fun getEntityProduct(): Flow<List<FiriyaUI>> = callbackFlow {
+        localDataSource.getProduct().collect {
+            trySend(it)
+        }
+        awaitClose { channel.close() }
     }
 }

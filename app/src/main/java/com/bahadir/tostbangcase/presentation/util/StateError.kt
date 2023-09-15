@@ -21,7 +21,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bahadir.tostbangcase.R
 
 @Composable
-fun StateError(@StringRes message: Int, modifier: Modifier = Modifier) {
+fun StateError(@StringRes message: Int? = null, modifier: Modifier = Modifier) {
     Column(modifier = modifier.wrapContentSize(align = Alignment.Center)) {
         val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.error))
         LottieAnimation(
@@ -35,7 +35,7 @@ fun StateError(@StringRes message: Int, modifier: Modifier = Modifier) {
 
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = stringResource(message),
+            text = stringResource(message ?: 0),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             textAlign = TextAlign.Center,

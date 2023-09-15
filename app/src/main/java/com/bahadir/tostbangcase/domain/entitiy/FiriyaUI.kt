@@ -15,4 +15,5 @@ data class FiriyaUI(
     val image: String,
     var price: String,
     val title: String,
-):Parcelable
+    var count: Int = 1,
+) : Parcelable

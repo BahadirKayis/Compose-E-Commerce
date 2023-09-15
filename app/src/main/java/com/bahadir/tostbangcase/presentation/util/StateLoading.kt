@@ -1,101 +1,81 @@
 package com.bahadir.tostbangcase.presentation.util
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 const val LOADING_ITEM_LAZY_COLUMN_TAG = "loading_item_lazy_column_test_tag"
 
 @Composable
-fun StateLoading() {
-    val placeHolderList = Array(10) {
-        0
-    }.toMutableList()
-
-    LazyColumn(
-        modifier = Modifier.testTag(LOADING_ITEM_LAZY_COLUMN_TAG),
-        userScrollEnabled = false,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        items(placeHolderList) {
-            LoadingItem()
-        }
-    }
-}
-
-@Composable
-fun LoadingItem() {
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 750
-                0.7f at 400
-            },
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "",
+fun StateLoading(
+    modifier: Modifier = Modifier,
+    circleSize: Dp = 25.dp,
+    circleColor: Color = MaterialTheme.colors.primary,
+    spaceBetween: Dp = 10.dp,
+    travelDistance: Dp = 20.dp,
+) {
+    val circles = listOf(
+        remember { Animatable(initialValue = 0f) },
+        remember { Animatable(initialValue = 0f) },
+        remember { Animatable(initialValue = 0f) },
     )
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp),
-        shape = RoundedCornerShape(8.dp),
+    circles.forEachIndexed { index, animatable ->
+        LaunchedEffect(key1 = animatable) {
+            delay(index * 100L)
+            animatable.animateTo(
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = keyframes {
+                        durationMillis = 1200
+                        0.0f at 0 with LinearOutSlowInEasing
+                        1.0f at 300 with LinearOutSlowInEasing
+                        0.0f at 600 with LinearOutSlowInEasing
+                        0.0f at 1200 with LinearOutSlowInEasing
+                    },
+                    repeatMode = RepeatMode.Restart,
+                ),
+            )
+        }
+    }
+
+    val circleValues = circles.map { it.value }
+    val distance = with(LocalDensity.current) { travelDistance.toPx() }
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(spaceBetween),
     ) {
-        Row {
+        circleValues.forEach { value ->
             Box(
                 modifier = Modifier
-                    .width(120.dp)
-                    .height(120.dp)
-                    .background(Color.LightGray.copy(alpha = alpha))
-                    .align(Alignment.CenterVertically),
-            )
-
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(Color.LightGray.copy(alpha = alpha)),
-            )
-
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowDown,
-                contentDescription = null,
-                modifier = Modifier
-                    .alignByBaseline()
-                    .padding(8.dp),
+                    .size(circleSize)
+                    .graphicsLayer {
+                        translationY = -value * distance
+                    }
+                    .background(
+                        color = circleColor,
+                        shape = CircleShape,
+                    ),
             )
         }
     }

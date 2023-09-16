@@ -8,6 +8,7 @@ import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
 import com.bahadir.tostbangcase.domain.usecase.products.GetProductUseCase
 import com.bahadir.tostbangcase.presentation.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -26,6 +27,7 @@ class HomeVM @Inject constructor(private val getProductUseCase: GetProductUseCas
 
     private fun getProducts() {
         viewModelScope.launch {
+            delay(100)
             getProductUseCase().collectLatest {
                 when (it) {
                     is Resource.Success -> {

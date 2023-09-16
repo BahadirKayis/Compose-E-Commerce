@@ -2,4 +2,6 @@
     <string name="app_name">Firiya</string>
     <string name="error_message">  ups error </string>
     <string name="price"> %s TL </string>
+    <string name="not_correct"> Email or Password is incorrect </string>
+    <string name="user_notFound"> You must be logged in to see your past orders </string>
 </resources>

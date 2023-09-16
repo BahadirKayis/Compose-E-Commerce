@@ -2,6 +2,7 @@ package com.bahadir.tostbangcase.data.repository
 
 import com.bahadir.tostbangcase.core.Resource
 import com.bahadir.tostbangcase.data.model.FiriyaItem
+import com.bahadir.tostbangcase.data.model.User
 import com.bahadir.tostbangcase.data.source.local.LocalDataSource
 import com.bahadir.tostbangcase.data.source.remote.RemoteDataSource
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaSoldBasket
@@ -62,4 +63,15 @@ class FiriyaRepositoryImpl @Inject constructor(
         }
         awaitClose { channel.close() }
     }
+
+    override suspend fun addUser(user: User) {
+        withContext(ioDispatcher) {
+            localDataSource.addUser(user)
+        }
+    }
+
+    override suspend fun getUser(): User =
+        withContext(ioDispatcher) {
+            localDataSource.getUser()
+        }
 }

@@ -12,6 +12,10 @@ import com.bahadir.tostbangcase.domain.usecase.remove.RemoveProductUseCase
 import com.bahadir.tostbangcase.domain.usecase.remove.RemoveProductUseCaseImpl
 import com.bahadir.tostbangcase.domain.usecase.sold.SoldBasketProductUseCase
 import com.bahadir.tostbangcase.domain.usecase.sold.SoldBasketProductUseCaseImpl
+import com.bahadir.tostbangcase.domain.usecase.user.add.AddUserUseCase
+import com.bahadir.tostbangcase.domain.usecase.user.add.AddUserUseCaseImpl
+import com.bahadir.tostbangcase.domain.usecase.user.get.GetUserUseCase
+import com.bahadir.tostbangcase.domain.usecase.user.get.GetUserUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -57,6 +61,17 @@ abstract class UseCaseModule {
     @ViewModelScoped
     abstract fun provideSoldHistoryEntityProductUseCase(
         soldUseCase: SoldHistoryUseCaseImpl,
-
     ): SoldHistoryUseCase
+
+    @Binds
+    @ViewModelScoped
+    abstract fun provideAddUser(
+        soldUseCase: AddUserUseCaseImpl,
+    ): AddUserUseCase
+
+    @Binds
+    @ViewModelScoped
+    abstract fun provideGetUser(
+        soldUseCase: GetUserUseCaseImpl,
+    ): GetUserUseCase
 }

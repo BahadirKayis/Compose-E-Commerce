@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.bahadir.tostbangcase.presentation.navigation.SetUpNavGraph
-import com.bahadir.tostbangcase.presentation.theme.TOSTBANGCaseTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -44,7 +43,7 @@ fun FiriyaApp(name: String, modifier: Modifier = Modifier) {
     SetUpNavGraph(navController = navController)
     SideEffect {
         systemUiController.setStatusBarColor(
-            color = Color(0xFF576CBC),
+            color = Color(0xFF6650a4),
             darkIcons = !isLight,
 
         )
@@ -55,6 +54,4 @@ fun FiriyaApp(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    TOSTBANGCaseTheme {
-    }
 }

@@ -1,11 +1,16 @@
 package com.bahadir.tostbangcase.data.source.local
 
+import com.bahadir.tostbangcase.data.model.User
 import com.bahadir.tostbangcase.data.room.FiriyaDao
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaSoldBasket
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 
 class LocalDataSourceImpl(private val firiya: FiriyaDao) : LocalDataSource {
     override fun getProduct(): Flow<List<FiriyaUI>> = callbackFlow {
@@ -29,8 +34,13 @@ class LocalDataSourceImpl(private val firiya: FiriyaDao) : LocalDataSource {
             if (item.count > 1) {
                 item.count -= 1
                 firiya.updateProduct(item)
-            } else {
-                firiya.deleteProduct(item.id)
+            } else if (item.count == 1) {
+                item.count = 0
+                firiya.updateProduct(item)
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(500)
+                    firiya.deleteProduct(firiyaUI.id)
+                }
             }
         }
     }
@@ -47,4 +57,8 @@ class LocalDataSourceImpl(private val firiya: FiriyaDao) : LocalDataSource {
     override suspend fun getSoldHistory(): List<FiriyaSoldBasket> {
         return firiya.getSoldHistory()
     }
+
+    override suspend fun addUser(user: User) = firiya.addUser(user)
+
+    override suspend fun getUser(): User = firiya.getUser()
 }

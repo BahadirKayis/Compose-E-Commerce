@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,9 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,40 +34,82 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.bahadir.tostbangcase.R
 import com.bahadir.tostbangcase.core.extensions.formatPrice
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaSoldBasket
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
-import com.bahadir.tostbangcase.presentation.util.ScreenState
-import com.bahadir.tostbangcase.presentation.util.StateError
-import com.bahadir.tostbangcase.presentation.util.StateLoading
+import com.bahadir.tostbangcase.presentation.navigation.MainScreen
+import com.bahadir.tostbangcase.presentation.screens.shoppinghistory.state.SoldUIState
+import com.bahadir.tostbangcase.presentation.theme.FiriyaTheme
+import com.bahadir.tostbangcase.presentation.util.ButtonComponent
+import com.google.accompanist.insets.navigationBarsPadding
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun ShoppingHistoryRoute(viewModel: SoldHistoryVM = hiltViewModel()) {
-    val uiState by viewModel.screenState.collectAsState(initial = ScreenState.Loading)
-
-    ShoppingHistoryScreen(uiState)
+fun ShoppingHistoryRoute(
+    navController: NavHostController,
+    routeLogin: () -> Unit,
+    viewModel: SoldHistoryVM = hiltViewModel(),
+) {
+    val uiState by viewModel.state.collectAsState(initial = SoldUIState())
+    FiriyaTheme {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                MainScreen(
+                    navController = navController,
+                    Modifier.navigationBarsPadding(),
+                )
+            },
+        ) { paddingValue ->
+            Surface(
+                modifier = Modifier.padding(bottom = paddingValue.calculateBottomPadding()),
+            ) {
+                ShoppingHistoryScreen(uiState)
+                if (uiState.isLogin) {
+                    UserNotFound(viewModel, routeLogin)
+                }
+            }
+        }
+    }
 }
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun ShoppingHistoryScreen(uiState: ScreenState<List<FiriyaSoldBasket>>) {
-    when (uiState) {
-        is ScreenState.Loading -> {
-            StateLoading()
-        }
+fun ShoppingHistoryScreen(uiState: SoldUIState) {
+    uiState.soldHistory?.let {
+        ShoppingHistoryList(it)
+    }
+}
 
-        is ScreenState.Error -> {
-            StateError()
-        }
-
-        is ScreenState.Success -> {
-            ShoppingHistoryList(uiState.uiData)
-        }
+@Composable
+fun UserNotFound(uiEvent: SoldHistoryVM, routeLogin: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(id = R.string.user_notFound),
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        ButtonComponent(
+            value = "Login",
+            onButtonClicked = {
+                routeLogin()
+            },
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .width(150.dp),
+        )
     }
 }
 

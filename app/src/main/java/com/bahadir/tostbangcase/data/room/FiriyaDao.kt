@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.bahadir.tostbangcase.data.model.User
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaSoldBasket
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
 import kotlinx.coroutines.flow.Flow
@@ -35,4 +36,10 @@ interface FiriyaDao {
 
     @Query("SELECT * FROM firiyaSoldBasket")
     suspend fun getSoldHistory(): List<FiriyaSoldBasket>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addUser(user: User)
+
+    @Query("SELECT * FROM user")
+    suspend fun getUser(): User
 }

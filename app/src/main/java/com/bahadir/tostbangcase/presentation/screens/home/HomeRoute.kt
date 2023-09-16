@@ -68,10 +68,10 @@ fun HomeScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = { MainScreen(navController = navController, Modifier.navigationBarsPadding()) },
-    ) { paddingvalues ->
+    ) { paddingValue ->
         Surface(
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = paddingvalues.calculateBottomPadding()),
+            color = Color(0xffededed),
+            modifier = Modifier.padding(bottom = paddingValue.calculateBottomPadding()),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 when (uiState) {

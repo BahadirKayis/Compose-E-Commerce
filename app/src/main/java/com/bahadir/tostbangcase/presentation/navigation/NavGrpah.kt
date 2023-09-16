@@ -2,6 +2,7 @@ package com.bahadir.tostbangcase.presentation.navigation
 
 import android.net.Uri
 import android.os.Bundle
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -23,7 +24,7 @@ import com.google.gson.Gson
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetUpNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = ScreenRoute.Home.route) {
+    NavHost(navController = navController, startDestination = ScreenRoute.Login.route) {
         addLogin(navController = navController)
         addHome(navController = navController)
         addBasket(navController = navController)
@@ -34,7 +35,7 @@ fun SetUpNavGraph(navController: NavHostController) {
 
 fun NavGraphBuilder.addLogin(navController: NavHostController) {
     composable(route = ScreenRoute.Login.route) {
-        LoginScreen(navigeteToHome = {
+        LoginScreen(navigateToHome = {
             navController.navigate(route = ScreenRoute.Home.route)
         })
     }
@@ -77,16 +78,18 @@ fun NavGraphBuilder.addHome(navController: NavHostController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 fun NavGraphBuilder.addBasket(navController: NavHostController) {
     composable(route = ScreenRoute.Basket.route) {
         BasketRoute(
+            navController = navController,
             navigateToDetail = {
                 val json = Uri.encode(Gson().toJson(it))
                 val route = "${ScreenRoute.Detail.route}/$json"
                 navController.navigate(route = route)
-            }, navigateToHome = {
-                navController.navigate(route = ScreenRoute.Home.route)
+            },
+            navigateToHome = {
+                navController.popBackStack()
             },
         )
     }
@@ -96,6 +99,8 @@ fun NavGraphBuilder.addBasket(navController: NavHostController) {
 @OptIn(ExperimentalFoundationApi::class)
 fun NavGraphBuilder.addShoppingHistory(navController: NavHostController) {
     composable(route = ScreenRoute.ShoppingHistory.route) {
-        ShoppingHistoryRoute()
+        ShoppingHistoryRoute(navController, routeLogin = {
+            navController.navigate(route = ScreenRoute.Login.route)
+        })
     }
 }

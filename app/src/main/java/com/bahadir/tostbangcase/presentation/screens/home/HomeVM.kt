@@ -6,6 +6,7 @@ import com.bahadir.tostbangcase.core.Resource
 import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegation
 import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegationImpl
 import com.bahadir.tostbangcase.domain.usecase.products.GetProductUseCase
+import com.bahadir.tostbangcase.presentation.screens.home.state.HomeErrorState
 import com.bahadir.tostbangcase.presentation.screens.home.state.HomeUIEvent
 import com.bahadir.tostbangcase.presentation.screens.home.state.HomeUIState
 import com.bahadir.tostbangcase.presentation.screens.home.state.homeNetworkError
@@ -44,7 +45,7 @@ class HomeVM @Inject constructor(private val getProductUseCase: GetProductUseCas
                     is Resource.Error -> {
                         setState(
                             getCurrentState().copy(
-                                errorState = homeNetworkError,
+                                errorState = HomeErrorState(networkError = homeNetworkError), isLoading = false
                             ),
                         )
                     }

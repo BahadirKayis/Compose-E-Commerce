@@ -23,8 +23,6 @@ class GetProductUseCaseImpl @Inject constructor(
             is Resource.Success -> {
                 emit(Resource.Success(mapper.map(response.data)))
             }
-
-            else -> Unit
         }
     }
 }

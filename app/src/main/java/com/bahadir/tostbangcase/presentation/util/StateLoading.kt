@@ -26,8 +26,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
-const val LOADING_ITEM_LAZY_COLUMN_TAG = "loading_item_lazy_column_test_tag"
-
 @Composable
 fun StateLoading(
     modifier: Modifier = Modifier,

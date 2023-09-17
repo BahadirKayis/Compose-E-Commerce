@@ -2,43 +2,52 @@ package com.bahadir.tostbangcase.presentation.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bahadir.tostbangcase.R
 import com.bahadir.tostbangcase.core.Resource
-import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
+import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegation
+import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegationImpl
 import com.bahadir.tostbangcase.domain.usecase.products.GetProductUseCase
-import com.bahadir.tostbangcase.presentation.util.ScreenState
+import com.bahadir.tostbangcase.presentation.screens.home.state.HomeUIEvent
+import com.bahadir.tostbangcase.presentation.screens.home.state.HomeUIState
+import com.bahadir.tostbangcase.presentation.screens.home.state.homeNetworkError
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeVM @Inject constructor(private val getProductUseCase: GetProductUseCase) : ViewModel() {
-    private val _screenState =
-        MutableStateFlow<ScreenState<List<FiriyaUI>>>(value = ScreenState.Loading)
-    val screenState: Flow<ScreenState<List<FiriyaUI>>> get() = _screenState
+class HomeVM @Inject constructor(private val getProductUseCase: GetProductUseCase) :
+    ViewModel(),
+    VMDelegation<HomeUIEvent, HomeUIState> by VMDelegationImpl(HomeUIState(isLoading = true)) {
 
     init {
+        viewModel(this)
+        event.onEach {
+            when (it) {
+                is HomeUIEvent.NavigateDetail -> {
+                    setState(getCurrentState().copy(navigateToDetail = true))
+                }
+            }
+        }.launchIn(viewModelScope)
         getProducts()
     }
 
     private fun getProducts() {
         viewModelScope.launch {
-            delay(100)
             getProductUseCase().collectLatest {
                 when (it) {
                     is Resource.Success -> {
-                        _screenState.value = ScreenState.Success(it.data)
+                        setState(getCurrentState().copy(isLoading = false, products = it.data))
                     }
 
                     is Resource.Error -> {
-                        _screenState.value = ScreenState.Error(R.string.error_message)
+                        setState(
+                            getCurrentState().copy(
+                                errorState = homeNetworkError,
+                            ),
+                        )
                     }
-
-                    else -> Unit
                 }
             }
         }

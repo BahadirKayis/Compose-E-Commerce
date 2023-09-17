@@ -14,12 +14,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bahadir.tostbangcase.R
 import com.bahadir.tostbangcase.presentation.screens.login.state.LoginState
 import com.bahadir.tostbangcase.presentation.screens.login.state.LoginUiEvent
-import com.bahadir.tostbangcase.presentation.screens.login.state.ScreenName
+import com.bahadir.tostbangcase.presentation.screens.login.state.ScreenType
 import com.bahadir.tostbangcase.presentation.theme.FiriyaTheme
 import com.bahadir.tostbangcase.presentation.util.ButtonComponent
 import com.bahadir.tostbangcase.presentation.util.ClickableLoginTextComponent
@@ -27,6 +28,7 @@ import com.bahadir.tostbangcase.presentation.util.DividerTextComponent
 import com.bahadir.tostbangcase.presentation.util.HeadingTextComponent
 import com.bahadir.tostbangcase.presentation.util.MyTextFieldComponent
 import com.bahadir.tostbangcase.presentation.util.NormalTextComponent
+import com.bahadir.tostbangcase.presentation.util.PasswordTextFieldComponent
 
 @Composable
 fun LoginScreen(navigateToHome: () -> Unit = {}, viewModel: LoginVM = hiltViewModel()) {
@@ -46,16 +48,20 @@ fun LoginBody(uiState: LoginState, uiEvent: LoginVM) {
     FiriyaTheme {
         Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+                .fillMaxSize(),
+
+            ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .weight(0.2f),
                 ) {
-                    NormalTextComponent(value = uiState.screenName.screenName)
+                    NormalTextComponent(value = uiState.screenType.screenName)
                     HeadingTextComponent(value = "Welcome to Firiya")
                 }
                 Column(
@@ -64,24 +70,24 @@ fun LoginBody(uiState: LoginState, uiEvent: LoginVM) {
                         .weight(0.4f),
                 ) {
                     MyTextFieldComponent(
-                        labelValue = "EMail",
+                        labelValue = stringResource(R.string.email),
                         painterResource = painterResource(id = R.drawable.ic_email),
                         errorStatus = uiState.errorState.emailOrMobileErrorState.hasError,
                         errorMessage = uiState.errorState.emailOrMobileErrorState.errorMessageStringResource,
                         onTextChanged = { uiEvent.setEvent(LoginUiEvent.EmailOrMobileChanged(it)) },
                     )
-                    MyTextFieldComponent(
-                        labelValue = "Passowrd",
+                    PasswordTextFieldComponent(
+                        labelValue = stringResource(id = R.string.password),
                         painterResource = painterResource(id = R.drawable.ic_lock),
                         errorStatus = uiState.errorState.passwordErrorState.hasError,
                         errorMessage = uiState.errorState.passwordErrorState.errorMessageStringResource,
-                        onTextChanged = { uiEvent.setEvent(LoginUiEvent.PasswordChanged(it)) },
+                        onTextSelected = { uiEvent.setEvent(LoginUiEvent.PasswordChanged(it)) },
                     )
 
-                    when (uiState.screenName) {
-                        ScreenName.REGISTER -> {
+                    when (uiState.screenType) {
+                        ScreenType.REGISTER -> {
                             MyTextFieldComponent(
-                                labelValue = "Name",
+                                labelValue = stringResource(R.string.name),
                                 painterResource = painterResource(id = R.drawable.ic_people),
                                 errorStatus = uiState.errorState.nameErrorState.hasError,
                                 errorMessage = uiState.errorState.nameErrorState.errorMessageStringResource,
@@ -98,25 +104,27 @@ fun LoginBody(uiState: LoginState, uiEvent: LoginVM) {
                         .weight(0.4f),
                 ) {
                     ButtonComponent(
-                        value = uiState.screenName.screenName,
+                        value = uiState.screenType.screenName,
                         onButtonClicked = {
-                            uiEvent.setEvent(LoginUiEvent.SendUser(uiState.screenName))
+                            uiEvent.setEvent(LoginUiEvent.SendUser(uiState.screenType))
                         },
                     )
 
                     DividerTextComponent()
-                    ClickableLoginTextComponent(tryingToLogin = (uiState.screenName == ScreenName.REGISTER)) {
-                        uiEvent.setEvent(LoginUiEvent.ChangeScreen(uiState.screenName))
+                    ClickableLoginTextComponent(tryingToLogin = (uiState.screenType == ScreenType.REGISTER)) {
+                        uiEvent.setEvent(LoginUiEvent.ChangeScreen(uiState.screenType))
                     }
 
                     Spacer(modifier = Modifier.height(50.dp))
 
                     ButtonComponent(
-                        value = "Continue",
+                        value = stringResource(R.string.continue_),
                         onButtonClicked = {
-                            uiEvent.setEvent(LoginUiEvent.SendUser(ScreenName.NONE))
+                            uiEvent.setEvent(LoginUiEvent.SendUser(ScreenType.NONE))
                         },
-                        modifier = Modifier.align(Alignment.CenterHorizontally).width(150.dp),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .width(150.dp),
                     )
                 }
             }

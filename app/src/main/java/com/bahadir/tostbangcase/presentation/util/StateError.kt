@@ -2,6 +2,7 @@ package com.bahadir.tostbangcase.presentation.util
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
@@ -21,24 +22,26 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bahadir.tostbangcase.R
 
 @Composable
-fun StateError(@StringRes message: Int? = null, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.wrapContentSize(align = Alignment.Center)) {
-        val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.error))
-        LottieAnimation(
-            composition = composition,
-            iterations = LottieConstants.IterateForever,
-            modifier = Modifier
-                .align(alignment = Alignment.CenterHorizontally)
-                .fillMaxWidth(fraction = 0.8f)
-                .height(200.dp),
-        )
+fun StateError(modifier: Modifier = Modifier, @StringRes message: Int? = null) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = modifier.wrapContentSize(align = Alignment.Center)) {
+            val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.error))
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .fillMaxWidth(fraction = 0.8f)
+                    .height(200.dp),
+            )
 
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(message ?: 0),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            textAlign = TextAlign.Center,
-        )
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(message ?: 0),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }

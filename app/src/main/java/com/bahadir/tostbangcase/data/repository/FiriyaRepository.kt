@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface FiriyaRepository {
     suspend fun getProduct(): Resource<List<FiriyaItem>>
-    suspend fun addProduct(firiya: FiriyaUI)
-    suspend fun deleteProduct(firiya: FiriyaUI)
-    suspend fun deleteAllProduct(firiya: List<FiriyaUI>)
+    suspend fun addProduct(product: FiriyaUI)
+    suspend fun deleteProduct(product: FiriyaUI)
+    suspend fun deleteAllProduct(product: List<FiriyaUI>)
     suspend fun soldBasket(basket: FiriyaSoldBasket)
     suspend fun getSoldHistory(): List<FiriyaSoldBasket>
     fun getEntityProduct(): Flow<List<FiriyaUI>>

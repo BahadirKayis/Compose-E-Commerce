@@ -1,7 +1,21 @@
 <resources>
     <string name="app_name">Firiya</string>
     <string name="error_message">  ups error </string>
-    <string name="price"> %s TL </string>
+    <string name="total_price"> Total price:  </string>
+    <string name="add_basket">Add to cart</string>
+    <string name="pay"> Buy Now </string>
+    <string name="price"> Price:  </string>
+    <string name="price_type"> %s TL </string>
     <string name="not_correct"> Email or Password is incorrect </string>
     <string name="user_notFound"> You must be logged in to see your past orders </string>
+    <string name="password">Password</string>
+    <string name="hide_password">Hide Password</string>
+    <string name="show_password">Show Password\n</string>
+    <string name="email_not_valid">email not valid</string>
+    <string name="password_not_valid">password not valid</string>
+    <string name="not_empty">cannot be empty</string>
+    <string name="email">EMail</string>
+    <string name="name">Name</string>
+    <string name="continue_">Continue</string>
+    <string name="quantity">Quantity: %1$s</string>
 </resources>

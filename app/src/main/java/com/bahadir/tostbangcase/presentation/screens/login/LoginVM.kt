@@ -1,21 +1,25 @@
 package com.bahadir.tostbangcase.presentation.screens.login
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bahadir.tostbangcase.R
+import com.bahadir.tostbangcase.core.extensions.isValidEmail
+import com.bahadir.tostbangcase.core.extensions.isValidPassword
 import com.bahadir.tostbangcase.data.model.User
 import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegation
 import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegationImpl
 import com.bahadir.tostbangcase.domain.usecase.user.add.AddUserUseCase
 import com.bahadir.tostbangcase.domain.usecase.user.get.GetUserUseCase
-import com.bahadir.tostbangcase.presentation.screens.login.state.ErrorState
 import com.bahadir.tostbangcase.presentation.screens.login.state.LoginErrorState
 import com.bahadir.tostbangcase.presentation.screens.login.state.LoginState
 import com.bahadir.tostbangcase.presentation.screens.login.state.LoginUiEvent
-import com.bahadir.tostbangcase.presentation.screens.login.state.ScreenName
+import com.bahadir.tostbangcase.presentation.screens.login.state.ScreenType
+import com.bahadir.tostbangcase.presentation.screens.login.state.emailNotValid
 import com.bahadir.tostbangcase.presentation.screens.login.state.emailOrMobileEmptyErrorState
+import com.bahadir.tostbangcase.presentation.screens.login.state.nameNotEmpty
 import com.bahadir.tostbangcase.presentation.screens.login.state.passwordEmptyErrorState
+import com.bahadir.tostbangcase.presentation.screens.login.state.passwordNotValid
+import com.bahadir.tostbangcase.presentation.util.ErrorState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -38,10 +42,10 @@ class LoginVM @Inject constructor(
                     }
 
                     is LoginUiEvent.ChangeScreen -> {
-                        if (event.screenState == ScreenName.LOGIN) {
-                            setState(getCurrentState().copy(screenName = ScreenName.REGISTER))
+                        if (event.screenState == ScreenType.LOGIN) {
+                            setState(getCurrentState().copy(screenType = ScreenType.REGISTER))
                         } else {
-                            setState(getCurrentState().copy(screenName = ScreenName.LOGIN))
+                            setState(getCurrentState().copy(screenType = ScreenType.LOGIN))
                         }
                     }
 
@@ -68,9 +72,9 @@ class LoginVM @Inject constructor(
         }
     }
 
-    private fun loginOrSave(screenState: ScreenName) {
+    private fun loginOrSave(screenState: ScreenType) {
         when (screenState) {
-            ScreenName.LOGIN -> {
+            ScreenType.LOGIN -> {
                 if (!validateInputs()) {
                     return
                 }
@@ -99,7 +103,7 @@ class LoginVM @Inject constructor(
                 }
             }
 
-            ScreenName.REGISTER -> {
+            ScreenType.REGISTER -> {
                 if (!validateInputs()) {
                     return
                 }
@@ -117,7 +121,7 @@ class LoginVM @Inject constructor(
                 setState(getCurrentState().copy(isSuccessful = true))
             }
 
-            ScreenName.NONE -> {
+            ScreenType.NONE -> {
                 setState(getCurrentState().copy(isSuccessful = true))
             }
         }
@@ -131,7 +135,7 @@ class LoginVM @Inject constructor(
                 setState(
                     getCurrentState().copy(
                         errorState = LoginErrorState(
-                            emailOrMobileErrorState = emailOrMobileEmptyErrorState,
+                            nameErrorState = nameNotEmpty,
                         ),
                     ),
                 )
@@ -215,6 +219,24 @@ class LoginVM @Inject constructor(
                     getCurrentState().copy(
                         errorState = LoginErrorState(
                             passwordErrorState = passwordEmptyErrorState,
+                        ),
+                    ),
+                )
+                false
+            }
+
+            !emailOrMobileString.isValidEmail() -> {
+                setState(
+                    getCurrentState().copy(errorState = LoginErrorState(emailOrMobileErrorState = emailNotValid)),
+                )
+                false
+            }
+
+            !passwordString.isValidPassword() -> {
+                setState(
+                    getCurrentState().copy(
+                        errorState = LoginErrorState(
+                            passwordErrorState = passwordNotValid,
                         ),
                     ),
                 )

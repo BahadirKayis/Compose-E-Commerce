@@ -28,8 +28,8 @@ class LocalDataSourceImpl(private val firiya: FiriyaDao) : LocalDataSource {
         } ?: kotlin.run { firiya.addProduct(product) }
     }
 
-    override suspend fun deleteProduct(firiyaUI: FiriyaUI) {
-        val item = firiya.findProductById(firiyaUI.id)
+    override suspend fun deleteProduct(product: FiriyaUI) {
+        val item = firiya.findProductById(product.id)
         item?.let {
             if (item.count > 1) {
                 item.count -= 1
@@ -39,15 +39,15 @@ class LocalDataSourceImpl(private val firiya: FiriyaDao) : LocalDataSource {
                 firiya.updateProduct(item)
                 CoroutineScope(Dispatchers.IO).launch {
                     delay(500)
-                    firiya.deleteProduct(firiyaUI.id)
+                    firiya.deleteProduct(product.id)
                 }
             }
         }
     }
 
     override suspend fun findProductById(id: Int): FiriyaUI? = firiya.findProductById(id)
-    override suspend fun deleteAllProduct(firiyaUI: List<FiriyaUI>) {
-        firiya.deleteAllProduct(firiyaUI)
+    override suspend fun deleteAllProduct(product: List<FiriyaUI>) {
+        firiya.deleteAllProduct(product)
     }
 
     override suspend fun addSoldHistory(product: FiriyaSoldBasket) {

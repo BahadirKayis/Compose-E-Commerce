@@ -2,18 +2,18 @@ package com.bahadir.tostbangcase.presentation.screens.basket
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bahadir.tostbangcase.core.ProductState
+import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegation
+import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegationImpl
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
 import com.bahadir.tostbangcase.domain.usecase.add.AddProductUseCase
 import com.bahadir.tostbangcase.domain.usecase.entityproducts.GetEntityProductUseCase
 import com.bahadir.tostbangcase.domain.usecase.remove.RemoveProductUseCase
 import com.bahadir.tostbangcase.domain.usecase.sold.SoldBasketProductUseCase
-import com.bahadir.tostbangcase.presentation.util.ScreenState
+import com.bahadir.tostbangcase.presentation.screens.basket.state.BasketUIEvent
+import com.bahadir.tostbangcase.presentation.screens.basket.state.BasketUIState
+import com.bahadir.tostbangcase.presentation.screens.basket.state.ProductState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,19 +22,26 @@ class BasketVM @Inject constructor(
     private val getProduct: GetEntityProductUseCase,
     private val addProduct: AddProductUseCase,
     private val removeProduct: RemoveProductUseCase,
-    private val soldUseCase: SoldBasketProductUseCase,
-
-) :
-    ViewModel() {
-    private val _screenState =
-        MutableStateFlow<ScreenState<List<FiriyaUI>>>(value = ScreenState.Loading)
-    val screenState: Flow<ScreenState<List<FiriyaUI>>> get() = _screenState
-
+    private val soldBasketUseCase: SoldBasketProductUseCase,
+) : ViewModel(), VMDelegation<BasketUIEvent, BasketUIState> by VMDelegationImpl(BasketUIState()) {
     init {
+        viewModel(this)
+        viewModelScope.launch {
+            event.collect { event ->
+                when (event) {
+                    is BasketUIEvent.UpdateProduct -> updateProduct(event.product, event.state)
+
+                    is BasketUIEvent.BottomSheetBasketSold -> {
+                        getCurrentState().uiData?.let { soldBasketProduct(it) }
+                        setState(getCurrentState().copy(navigateToHomeCardName = event.cardInfo))
+                    }
+                }
+            }
+        }
         getBasket()
     }
 
-    fun updateProduct(product: FiriyaUI, state: ProductState) {
+    private fun updateProduct(product: FiriyaUI, state: ProductState) {
         viewModelScope.launch {
             when (state) {
                 ProductState.ADD -> addProduct(product)
@@ -44,15 +51,17 @@ class BasketVM @Inject constructor(
     }
 
     private fun getBasket() {
-        getProduct.getProduct().onEach {
-            _screenState.value = ScreenState.Success(it)
-        }.launchIn(viewModelScope)
+        viewModelScope.launch {
+            getProduct.getProduct().collectLatest {
+                setState((getCurrentState().copy(uiData = it)))
+            }
+        }
     }
 
-    fun soldProduct(firiyaUI: List<FiriyaUI>) {
+    private fun soldBasketProduct(product: List<FiriyaUI>) {
         viewModelScope.launch {
-            soldUseCase.invoke(firiyaUI)
-            removeProduct.removeProduct(firiyaUI)
+            soldBasketUseCase.invoke(product)
+            removeProduct.removeAllProduct(product)
         }
     }
 }

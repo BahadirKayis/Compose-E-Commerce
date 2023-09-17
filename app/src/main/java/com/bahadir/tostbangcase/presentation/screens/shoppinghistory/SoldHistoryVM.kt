@@ -1,5 +1,6 @@
 package com.bahadir.tostbangcase.presentation.screens.shoppinghistory
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bahadir.tostbangcase.delegation.viewmodel.VMDelegation
@@ -26,14 +27,18 @@ class SoldHistoryVM @Inject constructor(
     private fun getSoldHistory() {
         viewModelScope.launch {
             soldHistory.invoke().collect {
-                setState(getCurrentState().copy(soldHistory = it))
+                setState(getCurrentState().copy(soldHistory = it, isLogin = true))
             }
         }
     }
 
     private fun getUserCheck() {
         viewModelScope.launch {
-            getUser.invoke()?.let { getSoldHistory() } ?: getCurrentState().copy(isLogin = false)
+            val user = getUser.invoke()
+            Log.e("user", user.toString())
+            user?.let {
+                getSoldHistory()
+            } ?: setState(getCurrentState().copy(isLogin = false))
         }
     }
 }

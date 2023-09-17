@@ -21,7 +21,7 @@ object RomDBModule {
         Room.databaseBuilder(
             appContext,
             FiriyaDatabase::class.java,
-            "recipeDatabase.db",
+            "productDatabase.db",
         ).build()
 
     @Provides

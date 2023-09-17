@@ -6,7 +6,7 @@ import javax.inject.Inject
 
 class RemoveProductUseCaseImpl @Inject constructor(private val repository: FiriyaRepository) :
     RemoveProductUseCase {
-    override suspend fun removeProduct(firiyaUI: FiriyaUI) = repository.deleteProduct(firiyaUI)
-    override suspend fun removeProduct(firiyaUI: List<FiriyaUI>) =
-        repository.deleteAllProduct(firiyaUI)
+    override suspend fun removeProduct(product: FiriyaUI) = repository.deleteProduct(product)
+    override suspend fun removeAllProduct(product: List<FiriyaUI>) =
+        repository.deleteAllProduct(product)
 }

@@ -30,7 +30,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.bahadir.tostbangcase.R
-import com.bahadir.tostbangcase.presentation.activity.NavigationItem
 import com.bahadir.tostbangcase.presentation.theme.FiriyaTheme
 
 @Composable

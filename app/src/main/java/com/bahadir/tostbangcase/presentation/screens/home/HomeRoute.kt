@@ -17,10 +17,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,11 +36,10 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.bahadir.tostbangcase.R
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
-import com.bahadir.tostbangcase.presentation.navigation.MainScreen
-import com.bahadir.tostbangcase.presentation.util.ScreenState
+import com.bahadir.tostbangcase.presentation.screens.home.state.HomeUIState
 import com.bahadir.tostbangcase.presentation.util.StateError
 import com.bahadir.tostbangcase.presentation.util.StateLoading
-import com.google.accompanist.insets.navigationBarsPadding
+import com.bahadir.tostbangcase.presentation.util.basecomponent.BottomNavigationScaffold
 
 @Composable
 fun HomeRoute(
@@ -51,7 +47,7 @@ fun HomeRoute(
     onProductClicked: (FiriyaUI) -> Unit,
     viewModel: HomeVM = hiltViewModel(),
 ) {
-    val uiState by viewModel.screenState.collectAsState(initial = ScreenState.Loading)
+    val uiState by viewModel.state.collectAsState(initial = HomeUIState(isLoading = true))
     HomeScreen(
         uiState = uiState,
         onProductClicked = onProductClicked,
@@ -61,36 +57,15 @@ fun HomeRoute(
 
 @Composable
 fun HomeScreen(
-    uiState: ScreenState<List<FiriyaUI>>,
+    uiState: HomeUIState,
     onProductClicked: (FiriyaUI) -> Unit,
     navController: NavHostController,
 ) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = { MainScreen(navController = navController, Modifier.navigationBarsPadding()) },
-    ) { paddingValue ->
-        Surface(
-            color = Color(0xffededed),
-            modifier = Modifier.padding(bottom = paddingValue.calculateBottomPadding()),
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (uiState) {
-                    is ScreenState.Error -> {
-                        StateError(uiState.message)
-                    }
-
-                    ScreenState.Loading -> {
-                        StateLoading()
-                    }
-
-                    is ScreenState.Success -> {
-                        ProductList(
-                            productList = uiState.uiData,
-                            onProductClicked = onProductClicked,
-                        )
-                    }
-                }
-            }
+    BottomNavigationScaffold(navController) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (uiState.errorState.networkError.hasError) StateError(message = uiState.errorState.networkError.errorMessageStringResource)
+            if (uiState.isLoading) StateLoading()
+            uiState.products?.let { ProductList(uiState.products, onProductClicked) }
         }
     }
 }
@@ -106,9 +81,9 @@ fun ProductList(productList: List<FiriyaUI>, onProductClicked: (FiriyaUI) -> Uni
         contentPadding = PaddingValues(16.dp),
 
     ) {
-        items(productList) { firiya ->
+        items(productList) { product ->
 
-            ProductItem(item = firiya, onProductClicked = onProductClicked)
+            ProductItem(item = product, onProductClicked = onProductClicked)
         }
     }
 }
@@ -158,7 +133,7 @@ fun ProductItem(item: FiriyaUI, onProductClicked: (FiriyaUI) -> Unit) {
 
             ) {
                 Text(
-                    text = stringResource(id = R.string.price, item.price),
+                    text = stringResource(id = R.string.price_type, item.price),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Red,
                     textAlign = TextAlign.End,
@@ -167,13 +142,8 @@ fun ProductItem(item: FiriyaUI, onProductClicked: (FiriyaUI) -> Unit) {
                         .fillMaxWidth()
                         .padding(start = 8.dp, end = 8.dp),
 
-                )
+                    )
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun prev() {
 }

@@ -1,7 +1,6 @@
 package com.bahadir.tostbangcase.core
 
 import androidx.room.TypeConverter
-import com.bahadir.tostbangcase.data.model.Rating
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

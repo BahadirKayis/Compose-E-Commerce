@@ -28,21 +28,21 @@ class FiriyaRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun addProduct(firiya: FiriyaUI) {
+    override suspend fun addProduct(product: FiriyaUI) {
         withContext(ioDispatcher) {
-            localDataSource.addProduct(firiya)
+            localDataSource.addProduct(product)
         }
     }
 
-    override suspend fun deleteProduct(firiya: FiriyaUI) {
+    override suspend fun deleteProduct(product: FiriyaUI) {
         withContext(ioDispatcher) {
-            localDataSource.deleteProduct(firiya)
+            localDataSource.deleteProduct(product)
         }
     }
 
-    override suspend fun deleteAllProduct(firiya: List<FiriyaUI>) {
+    override suspend fun deleteAllProduct(product: List<FiriyaUI>) {
         withContext(ioDispatcher) {
-            localDataSource.deleteAllProduct(firiya)
+            localDataSource.deleteAllProduct(product)
         }
     }
 

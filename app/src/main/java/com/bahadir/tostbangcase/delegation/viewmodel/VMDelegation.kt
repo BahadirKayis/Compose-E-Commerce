@@ -1,7 +1,7 @@
 package com.bahadir.tostbangcase.delegation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.bahadir.animelist.presentation.base.ees.Event
+import com.bahadir.tostbangcase.delegation.ees.Event
 import com.bahadir.tostbangcase.delegation.ees.State
 import kotlinx.coroutines.flow.SharedFlow
 

@@ -1,3 +1,3 @@
-package com.bahadir.animelist.presentation.base.ees
+package com.bahadir.tostbangcase.delegation.ees
 
 interface Event

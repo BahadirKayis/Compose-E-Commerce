@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,8 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Scaffold
-import androidx.compose.material.ScaffoldState
 import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -35,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -43,6 +39,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -62,15 +61,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.bahadir.tostbangcase.R
-import com.bahadir.tostbangcase.core.ProductState
 import com.bahadir.tostbangcase.core.extensions.formatPrice
 import com.bahadir.tostbangcase.domain.entitiy.FiriyaUI
-import com.bahadir.tostbangcase.presentation.navigation.MainScreen
-import com.bahadir.tostbangcase.presentation.util.ScreenState
-import com.bahadir.tostbangcase.presentation.util.addAnimationSlideHorizontal
-import com.bahadir.tostbangcase.presentation.util.addAnimationSlideVertical
-import com.bahadir.tostbangcase.presentation.util.removeAnimationSlideHorizontal
-import com.bahadir.tostbangcase.presentation.util.removeAnimationSlideVertical
+import com.bahadir.tostbangcase.presentation.screens.basket.state.BasketUIEvent
+import com.bahadir.tostbangcase.presentation.screens.basket.state.BasketUIState
+import com.bahadir.tostbangcase.presentation.screens.basket.state.ProductState
+import com.bahadir.tostbangcase.presentation.util.animation.addAnimationSlideHorizontal
+import com.bahadir.tostbangcase.presentation.util.animation.addAnimationSlideVertical
+import com.bahadir.tostbangcase.presentation.util.animation.removeAnimationSlideHorizontal
+import com.bahadir.tostbangcase.presentation.util.animation.removeAnimationSlideVertical
+import com.bahadir.tostbangcase.presentation.util.basecomponent.BottomNavigationScaffold
+import com.bahadir.tostbangcase.presentation.util.basecomponent.BottomTotal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -81,33 +82,15 @@ import kotlinx.coroutines.launch
 fun BasketRoute(
     navController: NavHostController,
     viewModel: BasketVM = hiltViewModel(),
-    navigateToDetail: (FiriyaUI) -> Unit,
     navigateToHome: () -> Unit,
 ) {
-    val uiState by viewModel.screenState.collectAsState(initial = ScreenState.Loading)
-    val scoffoldState = rememberScaffoldState()
-    val coroutineScope = rememberCoroutineScope()
+    val uiState by viewModel.state.collectAsState(initial = BasketUIState())
+
     BasketScreen(
-        uiState = uiState,
-        navigateToDetail = navigateToDetail,
-        navigateToHome = { cardName, list ->
-            coroutineScope.launch {
-                val job = coroutineScope.launch {
-                    scoffoldState.snackbarHostState.showSnackbar(
-                        message = "$cardName payment successful",
-                        duration = SnackbarDuration.Indefinite,
-                    )
-                }
-                delay(1000)
-                navigateToHome.invoke()
-                job.cancel()
-                viewModel.soldProduct(list)
-            }
-        },
-        updateBasket = { firiya, state ->
-            viewModel.updateProduct(firiya, state)
-        },
-        scoffoldState = scoffoldState, coroutineScope, navController,
+        state = uiState,
+        navController = navController,
+        viewModel = viewModel,
+        navigateToHome = navigateToHome,
     )
 }
 
@@ -115,90 +98,99 @@ fun BasketRoute(
 @ExperimentalMaterial3Api
 @Composable
 fun BasketScreen(
-    uiState: ScreenState<List<FiriyaUI>>,
-    navigateToDetail: (FiriyaUI) -> Unit,
-    navigateToHome: (String, List<FiriyaUI>) -> Unit,
-    updateBasket: (FiriyaUI, ProductState) -> Unit,
-    scoffoldState: ScaffoldState,
-    coroutineScope: CoroutineScope,
+    state: BasketUIState,
+    viewModel: BasketVM,
     navController: NavHostController,
+    navigateToHome: () -> Unit,
 ) {
-    val totalCount = remember {
-        mutableStateOf(0.0)
+    val totalCount = remember { mutableDoubleStateOf(0.0) }
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
+    val isSheetDialogOpen = rememberSaveable {
+        mutableStateOf(false)
     }
 
-    when (uiState) {
-        is ScreenState.Error -> {
-            Text(text = "Error")
-        }
-
-        is ScreenState.Loading -> {
-            Text(text = "Loading")
-        }
-
-        is ScreenState.Success -> {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                scaffoldState = scoffoldState,
-                bottomBar = {
-                    MainScreen(
-                        navController = navController,
-                        Modifier.navigationBarsPadding(),
-                    )
-                },
-
-            ) { paddingValue ->
-                Surface(
-                    color = Color(0xffededed),
-                    modifier = Modifier.padding(bottom = paddingValue.calculateBottomPadding()),
-                ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
+    BottomNavigationScaffold(navController, scaffoldState) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.9f),
+            ) {
+                state.uiData?.let {
+                    if (it.isEmpty())
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(0.9f),
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            if (uiState.uiData.isNotEmpty()) {
-                                BasketList(
-                                    uiState.uiData,
-                                    navigateToDetail,
-                                    totalCount,
-                                    updateBasket,
-                                )
-                            } else {
-                                Text(
-                                    text = "Basket is empty",
+                            Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.empty_history),
+                                    contentDescription = "null",
+                                    tint = Color(0xFFB39DDB),
                                     modifier = Modifier
-                                        .fillMaxSize(),
-                                    color = Color.Black,
-                                    fontSize = 20.sp,
-                                    textAlign = TextAlign.Center,
+                                        .size(150.dp)
                                 )
+
                             }
                         }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(0.1f),
-                            verticalAlignment = Alignment.Bottom,
-                        ) {
-                            BottomTotal(totalCount, navigateToHome, uiState.uiData, coroutineScope)
-                        }
-                    }
+                    else BasketProductList(
+                        productList = it,
+                        totalCount = totalCount,
+                        viewModel = viewModel,
+                    )
+
+
+                } ?: Text(
+                    text = "Basket is empty",
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.1f),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                BottomTotal(totalCount.doubleValue, R.string.total_price, R.string.pay) {
+                    isSheetDialogOpen.value = true
                 }
             }
         }
     }
+
+    state.navigateToHomeCardName?.let { cardName ->
+        coroutineScope.launch {
+            val job = coroutineScope.launch {
+                scaffoldState.snackbarHostState.showSnackbar(
+                    message = "$cardName payment successful",
+                    duration = SnackbarDuration.Indefinite,
+                )
+            }
+            delay(1000)
+            navigateToHome.invoke()
+            job.cancel()
+        }
+    }
+
+    BottomSheet(
+        isSheetDialog = isSheetDialogOpen,
+        viewModel = viewModel,
+        coroutineScope = coroutineScope,
+    )
 }
 
-@ExperimentalAnimationApi
 @ExperimentalMaterial3Api
+@ExperimentalAnimationApi
 @Composable
-fun BasketList(
-    firiyaItem: List<FiriyaUI>,
-    navigateToDetail: (FiriyaUI) -> Unit,
+fun BasketProductList(
+    productList: List<FiriyaUI>,
     totalCount: MutableState<Double>,
-    updateBasket: (FiriyaUI, ProductState) -> Unit,
+    viewModel: BasketVM,
 ) {
     val listState = rememberLazyListState()
 
@@ -208,8 +200,8 @@ fun BasketList(
         verticalArrangement = Arrangement.spacedBy(16.dp),
 
     ) {
-        items(firiyaItem) {
-            BasketItem(it, navigateToDetail, totalCount, updateBasket)
+        items(productList) {
+            ProductItem(it, totalCount, viewModel)
         }
     }
 }
@@ -217,25 +209,20 @@ fun BasketList(
 @ExperimentalAnimationApi
 @ExperimentalMaterial3Api
 @Composable
-fun BasketItem(
-    firiyaItem: FiriyaUI,
-    navigateToDetail: (FiriyaUI) -> Unit,
-    totalCount: MutableState<Double>,
-    updateBasket: (FiriyaUI, ProductState) -> Unit,
-) {
+fun ProductItem(product: FiriyaUI, totalCount: MutableState<Double>, viewModel: BasketVM) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     val height by animateDpAsState(
         if (isExpanded) 175.dp else 100.dp,
         animationSpec = tween(durationMillis = 300, easing = LinearEasing), label = "",
     )
-    var oldCountItem by remember { mutableStateOf(firiyaItem.count) }
+    var oldCountItem by remember { mutableIntStateOf(product.count) }
 
-    LaunchedEffect(firiyaItem.count) {
-        var diff = firiyaItem.count - oldCountItem
-        if (diff == 0) diff = firiyaItem.count
-        totalCount.value += (diff * firiyaItem.price.toDouble())
-        oldCountItem = firiyaItem.count
+    LaunchedEffect(product.count) {
+        var diff = product.count - oldCountItem
+        if (diff == 0) diff = product.count
+        totalCount.value += (diff * product.price.toDouble())
+        oldCountItem = product.count
     }
 
     Card(
@@ -251,7 +238,7 @@ fun BasketItem(
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
-                model = firiyaItem.image,
+                model = product.image,
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
@@ -271,7 +258,7 @@ fun BasketItem(
                         .weight(0.4f),
                 ) {
                     Text(
-                        text = firiyaItem.title,
+                        text = product.title,
                         style = MaterialTheme.typography.titleSmall,
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
@@ -292,74 +279,13 @@ fun BasketItem(
                                 .weight(0.5f),
 
                         ) {
-                            Row(
+                            ProductControl(
+                                viewModel = viewModel,
+                                product = product,
                                 modifier = Modifier.weight(0.5f),
+                                oldCountItem = oldCountItem,
+                            )
 
-                            ) {
-                                SmallFloatingActionButton(
-                                    onClick = {
-                                        updateBasket.invoke(firiyaItem, ProductState.REMOVE)
-                                    },
-                                    containerColor = Color.Red,
-                                    contentColor = Color.White,
-                                    modifier = Modifier
-                                        .size(25.dp)
-                                        .align(Alignment.Bottom),
-                                ) {
-                                    Icon(
-                                        ImageVector.vectorResource(id = R.drawable.ic_minues),
-                                        "remove item",
-                                    )
-                                }
-                                Box(
-                                    modifier = Modifier.weight(0.2f).fillMaxWidth()
-                                        .align(Alignment.Bottom),
-                                ) {
-                                    AnimatedContent(
-                                        targetState = firiyaItem.count,
-                                        transitionSpec = {
-                                            if (targetState > oldCountItem) {
-                                                addAnimationSlideHorizontal().using(
-                                                    SizeTransform(clip = false),
-                                                )
-                                            } else {
-                                                removeAnimationSlideHorizontal().using(
-                                                    SizeTransform(clip = false),
-                                                )
-                                            }
-                                        },
-                                        label = "ss",
-                                    ) { count ->
-
-                                        Text(
-                                            text = count.toString(),
-                                            style = MaterialTheme.typography.headlineSmall,
-                                            textAlign = TextAlign.Center,
-                                            fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(
-                                                alpha = 0.8f,
-                                            ),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-
-
-                                        )
-                                    }
-                                }
-
-                                SmallFloatingActionButton(
-                                    onClick = {
-                                        updateBasket.invoke(firiyaItem, ProductState.ADD)
-                                    },
-                                    containerColor = Color.Green,
-                                    contentColor = Color.White,
-                                    modifier = Modifier
-                                        .size(25.dp)
-                                        .align(Alignment.Bottom),
-                                ) {
-                                    Icon(Icons.Filled.Add, "Add Item")
-                                }
-                            }
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -370,7 +296,7 @@ fun BasketItem(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     AnimatedContent(
-                                        targetState = firiyaItem.count,
+                                        targetState = product.count,
                                         transitionSpec = {
                                             if (targetState > oldCountItem) {
                                                 addAnimationSlideVertical().using(
@@ -387,19 +313,19 @@ fun BasketItem(
 
                                         Text(
                                             text = stringResource(
-                                                id = R.string.price,
-                                                (firiyaItem.price.toDouble() * count).formatPrice(),
+                                                id = R.string.price_type,
+                                                (product.price.toDouble() * count).formatPrice(),
                                             ),
                                             style = MaterialTheme.typography.headlineSmall,
-                                            textAlign = TextAlign.Center, // Metni sağa hizalayın
+                                            textAlign = TextAlign.Center,
                                             fontSize = 16.sp,
                                             color = Color.Black,
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(top = 8.dp)
                                                 .align(Alignment.Top),
-                                            // Metni sağ alt köşeye hizalayın
-                                        )
+
+                                            )
                                     }
                                 }
                             }
@@ -412,155 +338,104 @@ fun BasketItem(
 }
 
 @ExperimentalAnimationApi
-@ExperimentalMaterial3Api
 @Composable
-fun BottomTotal(
-    totalCount: MutableState<Double>,
-    navigateToHome: (String, List<FiriyaUI>) -> Unit,
-    firiyaList: List<FiriyaUI>,
-    coroutineScope: CoroutineScope,
+fun ProductControl(viewModel: BasketVM, product: FiriyaUI, modifier: Modifier, oldCountItem: Int) {
+    Row(
+        modifier = modifier,
 
-) {
-    var isSheetOpen by rememberSaveable {
-        mutableStateOf(false)
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(75.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(Color(0xFFEEEEEE)),
-            verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(modifier = Modifier.weight(0.6f)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight()
-                            .weight(1f),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(0.5f),
-                        ) {
-                            Text(
-                                text = "Total Price : ",
-                                fontStyle = MaterialTheme.typography.headlineLarge.fontStyle,
-                                fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
-                                fontSize = 16.sp,
-                                color = Color.Black,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .align(Alignment.CenterStart),
-                            )
-                        }
-
-                        var oldTotalCount by remember {
-                            mutableStateOf(totalCount.value)
-                        }
-                        AnimatedContent(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(0.5f)
-                                .align(Alignment.CenterVertically),
-                            targetState = totalCount.value,
-                            transitionSpec = {
-                                if (targetState > oldTotalCount) {
-                                    addAnimationSlideVertical().using(
-                                        SizeTransform(clip = false),
-                                    )
-                                } else {
-                                    removeAnimationSlideVertical().using(
-                                        SizeTransform(clip = false),
-                                    )
-                                }
-                            },
-                            label = "ss",
-                        ) { totalCount ->
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-
-                            ) {
-                                oldTotalCount = totalCount
-                                Text(
-                                    text = stringResource(
-                                        id = R.string.price,
-                                        totalCount.formatPrice(),
-                                    ),
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .align(Alignment.CenterStart),
-                                    fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
-                                    fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
-                                    fontSize = 17.sp,
-                                    color = Color(0xFF6650a4),
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(0.4f)
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    onClick = {
-                        isSheetOpen = true
-                    },
-
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFF6650a4)),
-
-                    ) {
-                        Text(
-                            text = "Buy Now",
-                            fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
-                            fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
-                            fontSize = 20.sp,
-                            modifier = Modifier.align(alignment = Alignment.Center),
-
-                            color = Color.White,
+        SmallFloatingActionButton(
+            onClick = {
+                viewModel.setEvent(
+                    BasketUIEvent.UpdateProduct(
+                        product,
+                        ProductState.REMOVE,
+                    ),
+                )
+            },
+            containerColor = Color.Red,
+            contentColor = Color.White,
+            modifier = Modifier
+                .size(25.dp)
+                .align(Alignment.Bottom),
+        ) {
+            Icon(
+                ImageVector.vectorResource(id = R.drawable.ic_minues),
+                "remove item",
+            )
+        }
+        Box(
+            modifier = Modifier
+                .weight(0.2f)
+                .fillMaxWidth()
+                .align(Alignment.Bottom),
+        ) {
+            AnimatedContent(
+                targetState = product.count,
+                transitionSpec = {
+                    if (targetState > oldCountItem) {
+                        addAnimationSlideHorizontal().using(
+                            SizeTransform(clip = false),
+                        )
+                    } else {
+                        removeAnimationSlideHorizontal().using(
+                            SizeTransform(clip = false),
                         )
                     }
-                }
+                },
+                label = "ss",
+            ) { count ->
+
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.8f,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+
+                    )
             }
         }
-        BottomSheet(isSheetOpen, navigateToHome, firiyaList, coroutineScope)
+
+        SmallFloatingActionButton(
+            onClick = {
+                viewModel.setEvent(
+                    BasketUIEvent.UpdateProduct(
+                        product,
+                        ProductState.ADD,
+                    ),
+                )
+            },
+            containerColor = Color.Green,
+            contentColor = Color.White,
+            modifier = Modifier
+                .size(25.dp)
+                .align(Alignment.Bottom),
+        ) {
+            Icon(Icons.Filled.Add, "Add Item")
+        }
     }
 }
 
 @ExperimentalMaterial3Api
 @Composable
 fun BottomSheet(
-    isSheetOpen: Boolean,
-    navigateToHome: (String, List<FiriyaUI>) -> Unit,
-    firiyaList: List<FiriyaUI>,
+    isSheetDialog: MutableState<Boolean>,
+    viewModel: BasketVM,
     coroutineScope: CoroutineScope,
 
-) {
+    ) {
     val sheetState = rememberModalBottomSheetState()
-    if (isSheetOpen) {
+    if (isSheetDialog.value) {
         ModalBottomSheet(
             sheetState = sheetState,
-            onDismissRequest = { /*TODO*/ },
-        ) {
+            onDismissRequest = { isSheetDialog.value = false },
+
+            ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -574,7 +449,12 @@ fun BottomSheet(
                     shape = RoundedCornerShape(16.dp),
                     onClick = {
                         coroutineScope.launch { sheetState.hide() }
-                        navigateToHome.invoke("Paid by card 1", firiyaList)
+                        viewModel.setEvent(
+                            BasketUIEvent.BottomSheetBasketSold(
+                                "Paid by card 1",
+
+                                ),
+                        )
                     },
                 ) {
                     Box(
@@ -602,7 +482,12 @@ fun BottomSheet(
                     shape = RoundedCornerShape(16.dp),
                     onClick = {
                         coroutineScope.launch { sheetState.hide() }
-                        navigateToHome.invoke("Paid by card 2", firiyaList)
+                        viewModel.setEvent(
+                            BasketUIEvent.BottomSheetBasketSold(
+                                "Paid by card 2",
+
+                                ),
+                        )
                     },
                 ) {
                     Box(
